@@ -74,6 +74,14 @@ export const DEFAULT_SCHEDULE: ScheduleBlock[] = [
     tasks: [],
     alarmEnabled: true,
   },
+  {
+    id: 'midnight-alarm',
+    name: 'Alarma 00:30',
+    startTime: '00:30',
+    endTime: '00:30',
+    tasks: [],
+    alarmEnabled: true,
+  },
 ];
 
 
