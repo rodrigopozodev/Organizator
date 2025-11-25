@@ -21,7 +21,7 @@ export const AlarmTest: React.FC = () => {
   const testAlarm = () => {
     setIsPlaying(true);
     
-    // Probar alarma con sonido
+    // Probar alarma con sonido (sin modal para la prueba, solo sonido)
     showAlarmNotification('Prueba de Alarma', '12:00', true);
     
     // Si no hay permisos de notificación, aún reproducir el sonido

@@ -4,10 +4,17 @@ import { loadSchedule, saveSchedule, loadTheme, saveTheme, loadAlarmsEnabled, sa
 import { startAlarmSystem, stopAlarmSystem, requestNotificationPermission } from '../utils/alarms';
 import { getTomorrowDate } from '../utils/time';
 
+interface AlarmModalState {
+  isOpen: boolean;
+  blockName: string;
+  startTime: string;
+}
+
 interface AppContextType {
   schedule: ScheduleBlock[];
   theme: Theme;
   alarmsEnabled: boolean;
+  alarmModal: AlarmModalState;
   addTask: (blockId: string, text: string) => void;
   toggleTask: (blockId: string, taskId: string) => void;
   deleteTask: (blockId: string, taskId: string) => void;
@@ -16,6 +23,8 @@ interface AppContextType {
   toggleBlockAlarm: (blockId: string) => void;
   toggleTheme: () => void;
   toggleAlarms: () => void;
+  showAlarmModal: (blockName: string, startTime: string) => void;
+  closeAlarmModal: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -24,6 +33,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [schedule, setSchedule] = useState<ScheduleBlock[]>(() => loadSchedule());
   const [theme, setTheme] = useState<Theme>(() => loadTheme());
   const [alarmsEnabled, setAlarmsEnabled] = useState<boolean>(() => loadAlarmsEnabled());
+  const [alarmModal, setAlarmModal] = useState<AlarmModalState>({
+    isOpen: false,
+    blockName: '',
+    startTime: '',
+  });
 
   // Aplicar tema al documento
   useEffect(() => {
@@ -34,15 +48,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [theme]);
 
+  // Mostrar modal de alarma
+  const showAlarmModal = useCallback((blockName: string, startTime: string) => {
+    setAlarmModal({
+      isOpen: true,
+      blockName,
+      startTime,
+    });
+  }, []);
+
+  // Cerrar modal de alarma
+  const closeAlarmModal = useCallback(() => {
+    setAlarmModal({
+      isOpen: false,
+      blockName: '',
+      startTime: '',
+    });
+  }, []);
+
   // Inicializar sistema de alarmas
   useEffect(() => {
     requestNotificationPermission();
-    startAlarmSystem(schedule, alarmsEnabled);
+    startAlarmSystem(schedule, alarmsEnabled, showAlarmModal);
 
     return () => {
       stopAlarmSystem();
     };
-  }, [schedule, alarmsEnabled]);
+  }, [schedule, alarmsEnabled, showAlarmModal]);
 
   // Guardar cambios en localStorage
   useEffect(() => {
@@ -176,6 +208,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     schedule,
     theme,
     alarmsEnabled,
+    alarmModal,
     addTask,
     toggleTask,
     deleteTask,
@@ -184,6 +217,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     toggleBlockAlarm,
     toggleTheme,
     toggleAlarms,
+    showAlarmModal,
+    closeAlarmModal,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

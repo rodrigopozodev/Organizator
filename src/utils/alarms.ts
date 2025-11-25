@@ -104,6 +104,14 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
   return false;
 };
 
+// Callback para mostrar el modal de alarma
+let alarmModalCallback: ((blockName: string, startTime: string) => void) | null = null;
+
+// Configurar callback del modal
+export const setAlarmModalCallback = (callback: (blockName: string, startTime: string) => void): void => {
+  alarmModalCallback = callback;
+};
+
 // Configurar alarma para un bloque específico
 const setupBlockAlarm = (block: ScheduleBlock, alarmsEnabled: boolean): void => {
   // Limpiar alarma anterior si existe
@@ -124,24 +132,40 @@ const setupBlockAlarm = (block: ScheduleBlock, alarmsEnabled: boolean): void => 
   if (minutesToStart > 5) {
     const millisecondsUntilAlarm = (minutesToStart - 5) * 60 * 1000;
     const timeoutId = window.setTimeout(() => {
-      showAlarmNotification(block.name, block.startTime);
+      // Mostrar modal de alarma
+      if (alarmModalCallback) {
+        alarmModalCallback(block.name, block.startTime);
+      }
+      // También mostrar notificación del navegador
+      showAlarmNotification(block.name, block.startTime, false);
       activeAlarms.delete(block.id);
     }, millisecondsUntilAlarm);
     activeAlarms.set(block.id, timeoutId);
   } 
   // Si faltan exactamente 5 minutos o menos (pero el bloque aún no ha comenzado), sonar inmediatamente
   else if (minutesToStart > 0 && minutesToStart <= 5) {
-    showAlarmNotification(block.name, block.startTime);
+    // Mostrar modal de alarma
+    if (alarmModalCallback) {
+      alarmModalCallback(block.name, block.startTime);
+    }
+    // También mostrar notificación del navegador
+    showAlarmNotification(block.name, block.startTime, false);
   }
 };
 
 // Inicializar sistema de alarmas
 export const startAlarmSystem = (
   schedule: ScheduleBlock[],
-  alarmsEnabled: boolean
+  alarmsEnabled: boolean,
+  modalCallback?: (blockName: string, startTime: string) => void
 ): void => {
   // Limpiar sistema anterior
   stopAlarmSystem();
+
+  // Configurar callback del modal
+  if (modalCallback) {
+    setAlarmModalCallback(modalCallback);
+  }
 
   if (!alarmsEnabled) {
     return;

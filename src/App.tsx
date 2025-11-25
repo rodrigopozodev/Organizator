@@ -3,9 +3,10 @@ import { AppProvider, useApp } from './context/AppContext';
 import { Header } from './components/Header';
 import { ScheduleBlock } from './components/ScheduleBlock';
 import { AlarmTest } from './components/AlarmTest';
+import { AlarmModal } from './components/AlarmModal';
 
 const AppContent: React.FC = () => {
-  const { schedule } = useApp();
+  const { schedule, alarmModal, closeAlarmModal } = useApp();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -41,6 +42,14 @@ const AppContent: React.FC = () => {
           </p>
         </div>
       </main>
+
+      {alarmModal.isOpen && (
+        <AlarmModal
+          blockName={alarmModal.blockName}
+          startTime={alarmModal.startTime}
+          onStop={closeAlarmModal}
+        />
+      )}
     </div>
   );
 };
